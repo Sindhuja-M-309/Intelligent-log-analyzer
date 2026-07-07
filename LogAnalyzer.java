@@ -2,68 +2,58 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class LogAnalyzer {
-    public static void main(String[] args) {
-        String filePath = "C:\\Users\\SINDHUJA M\\OneDrive\\Documents\\intelligent-log-analyzer\\E-commerce Website Logs.csv"; 
-        
-        System.out.println("Starting Intelligent E-Commerce Traffic Analyzer...");
-        System.out.println("Processing streams... please wait.\n");
-        
-        long startTime = System.currentTimeMillis();
-        int lineCount = 0;
-        
-        // Analytical Counters
-        int chromeCount = 0;
-        int firefoxCount = 0;
-        int creditCardCount = 0;
-        int cashCount = 0;
+// ==========================================
+// 1. DATA ENCAPSULATION LAYER (OOPs Concept)
+// ==========================================
+class TransactionRecord {
+    private final String browser;
+    private final String paymentMethod;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String currentLine;
-            
-            while ((currentLine = br.readLine()) != null) {
-                lineCount++;
-                
-                // we should skip the header row if the file contains column names
-                if (lineCount == 1 && (currentLine.contains("Date") || currentLine.contains("Time"))) {
-                    continue;
-                }
+    // Constructor to initialize our immutable object data
+    public TransactionRecord(String browser, String paymentMethod) {
+        this.browser = browser != null ? browser.trim() : "";
+        this.paymentMethod = paymentMethod != null ? paymentMethod.trim() : "";
+    }
 
-                String[] tokens = currentLine.split(",");
-                
-                //to ensure the line has all 15 columns to prevent index errors
-                if (tokens.length >= 15) {
-                    
-                    // 1. Analyze Web Browser (Column index 5)
-                    String browser = tokens[5].trim();
-                    if (browser.equalsIgnoreCase("Chrome")) {
-                        chromeCount++;
-                    } else if (browser.equalsIgnoreCase("Mozilla Firefox")) {
-                        firefoxCount++;
-                    }
-                    
-                    // 2. Analyze Payment Method (Column index 14)
-                    String paymentMethod = tokens[14].trim();
-                    if (paymentMethod.equalsIgnoreCase("Credit Card")) {
-                        creditCardCount++;
-                    } else if (paymentMethod.equalsIgnoreCase("Cash")) {
-                        cashCount++;
-                    }
-                }
-            }
-            
-        } catch (IOException e) {
-            System.out.println("Critical Error reading the log engine: " + e.getMessage());
+    // Getters to safely access our private variables
+    public String getBrowser() { return this.browser; }
+    public String getPaymentMethod() { return this.paymentMethod; }
+}
+
+// ==========================================
+// 2. ANALYTICS & STATE MANAGEMENT LAYER
+// ==========================================
+class MetricsRegistry {
+    private int totalLogs = 0;
+    private int chromeCount = 0;
+    private int firefoxCount = 0;
+    private int creditCardCount = 0;
+    private int cashCount = 0;
+
+    // Method to ingest an object and dynamically update state logic
+    public void registerTransaction(TransactionRecord record) {
+        totalLogs++;
+
+        if (record.getBrowser().equalsIgnoreCase("Chrome")) {
+            chromeCount++;
+        } else if (record.getBrowser().equalsIgnoreCase("Mozilla Firefox")) {
+            firefoxCount++;
         }
 
-        long endTime = System.currentTimeMillis();
-        
-        //Metrics Summary
+        if (record.getPaymentMethod().equalsIgnoreCase("Credit Card")) {
+            creditCardCount++;
+        } else if (record.getPaymentMethod().equalsIgnoreCase("Cash")) {
+            cashCount++;
+        }
+    }
+
+    // Prints a structured dashboard report out to the console
+    public void compileReport(long executionTime) {
         System.out.println("==================================================");
         System.out.println("       REAL-TIME TRAFFIC & TRANSACTION REPORT     ");
         System.out.println("==================================================");
-        System.out.println(" Total Transactions Parsed : " + lineCount);
-        System.out.println(" Time Taken Execution      : " + (endTime - startTime) + " ms");
+        System.out.println(" Total Transactions Parsed : " + totalLogs);
+        System.out.println(" Time Taken Execution      : " + executionTime + " ms");
         System.out.println("--------------------------------------------------");
         System.out.println(" 🌐 BROWSER DISTRIBUTION:");
         System.out.println("   - Google Chrome Users   : " + chromeCount);
@@ -73,5 +63,50 @@ public class LogAnalyzer {
         System.out.println("   - Credit Card Checkout  : " + creditCardCount);
         System.out.println("   - Cash On Delivery      : " + cashCount);
         System.out.println("==================================================");
+    }
+}
+
+// ==========================================
+// 3. MAIN RUNTIME CONTROLLER
+// ==========================================
+public class LogAnalyzer {
+    public static void main(String[] args) {
+        // Change this back to your true working dataset path!
+        String filePath = "C:\\Users\\SINDHUJA M\\OneDrive\\Documents\\intelligent-log-analyzer\\E-commerce Website Logs.csv"; 
+        
+        System.out.println("Initializing Object-Oriented Log Processor Engine...");
+        System.out.println("Streaming target files safely...\n");
+        
+        long startTime = System.currentTimeMillis();
+        MetricsRegistry metrics = new MetricsRegistry();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String currentLine;
+            int currentLineNumber = 0;
+            
+            while ((currentLine = br.readLine()) != null) {
+                currentLineNumber++;
+                
+                if (currentLineNumber == 1 && (currentLine.contains("Date") || currentLine.contains("Time"))) {
+                    continue;
+                }
+
+                String[] tokens = currentLine.split(",");
+                
+                if (tokens.length >= 15) {
+                    // Instantiating our structural layout object block
+                    TransactionRecord record = new TransactionRecord(tokens[5], tokens[14]);
+                    
+                    // Sending our formatted tracking bundle to the calculations register
+                    metrics.registerTransaction(record);
+                }
+            }
+            
+        } catch (IOException e) {
+            System.out.println("Critical Error in streaming engine pipeline: " + e.getMessage());
+        }
+
+        long endTime = System.currentTimeMillis();
+        metrics.compileReport(endTime - startTime);
     }
 }
