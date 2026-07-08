@@ -12,3 +12,5 @@ CREATE TABLE traffic_summary (
     cash_tx INT,
     execution_time_ms INT
 );
+
+
